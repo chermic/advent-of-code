@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 )
 
 func main() {
@@ -15,19 +17,43 @@ func main() {
 
 	inputString := string(file[:])
 
-	re, err := regexp.Compile(`((mul\(\d+,\d+\))|(do(n't)?\(\)))`)
+	operationRegexp := `do(?:n't)?\(\)`
+	multiplyRegexp := `mul\(\d+,\d+\)`
+
+	generalRegexp := fmt.Sprintf(`(?:%v)|(?:%v)`, multiplyRegexp, operationRegexp)
+
+	re, err := regexp.Compile(generalRegexp)
 
 	if err != nil {
 		log.Panic(err)
 	}
 
 	match := re.FindAllStringSubmatch(inputString, -1)
-	log.Println(match)
 
-	// for _, v := range match {
-	// 	log.Println(v)
-	// }
-	// for k, v := range file {
-	// 	log.Printf("key=%v, value=%v", k, utf8.decode v.)
-	// }
+	operationRegexpCompiled, err := regexp.Compile(operationRegexp)
+
+	result := 0
+
+	multiplyEnabled := true
+	for _, v := range match {
+		operation := v[0]
+		if operationRegexpCompiled.MatchString(operation) {
+			if operation == "do()" {
+				multiplyEnabled = true
+			} else {
+				multiplyEnabled = false
+			}
+		} else if multiplyEnabled {
+			numbersRegexp, _ := regexp.Compile(`\d+`)
+			numbers := numbersRegexp.FindAllStringSubmatch(operation, -1)
+
+			multiplier1, _ := strconv.Atoi(numbers[0][0])
+			multiplier2, _ := strconv.Atoi(numbers[1][0])
+
+			result += (multiplier1) * (multiplier2)
+
+			log.Println(result)
+		}
+
+	}
 }
