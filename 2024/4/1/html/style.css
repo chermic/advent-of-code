@@ -1,0 +1,17 @@
+body {
+  font-family: monospace;
+}
+
+.field {
+  display: flex;
+}
+
+.cell {
+  width: 10px;
+  font-size: 18px;
+}
+
+.row {
+  display: flex;
+
+}

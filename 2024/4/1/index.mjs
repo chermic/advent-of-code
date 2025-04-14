@@ -41,7 +41,6 @@ const findNextLetter = (x, y, currentLetterIndex, count) => {
   const nextLetterIndex = currentLetterIndex + 1;
 
   for (const [neighborX, neighborY] of letterNeighborsCoords) {
-    // console.log({ count, neighborX, neighborY, currentLetterIndex, x, y })
     if (content[neighborY][neighborX] === TARGET[nextLetterIndex]) {
       if (nextLetterIndex === LAST_TARGET_INDEX) {
         return count + 1
