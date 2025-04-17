@@ -25,8 +25,8 @@ const MAX_Y = content.length - 1
 const getCoordNeighbors = (x, y) => {
   const restLettersCount = TARGET.length - 1
 
-  const isXGreaterThanMinimum = x > 0 + restLettersCount
-  const isYGreaterThanMinimum = y > 0 + restLettersCount
+  const isXGreaterThanMinimum = x >= restLettersCount
+  const isYGreaterThanMinimum = y >= restLettersCount
   const isXLessThanMaximum = x < MAX_X - restLettersCount
   const isYLessThanMaximum = y < MAX_Y - restLettersCount
 
@@ -90,9 +90,7 @@ const findNextLetter = (x, y, currentLetterIndex, count) => {
 
 for (let y = 0; y < content.length; y++) {
   for (let x = 0; x < content[y].length; x++) {
-    const letter = getLetterByCoords({ content, x, y })
-
-    if (letter !== TARGET[0]) {
+    if (getLetterByCoords({ content, x, y }) !== TARGET[0]) {
       continue
     }
 
@@ -101,21 +99,23 @@ for (let y = 0; y < content.length; y++) {
     for (const neighbor of letterNeighborsCoords) {
       const neighborLetter = getLetterByCoords({ content, x: neighbor.x, y: neighbor.y });
 
-      if (neighborLetter === TARGET[1]) {
-        let currentLetterIndex = 2;
+      if (neighborLetter !== TARGET[1]) {
+        continue;
+      }
 
+      let currentLetterIndex = 2;
 
-        let letterCoords = getNextLetterCoords({ x: neighbor.x, y: neighbor.y }, { x: neighbor.direction.x, y: neighbor.direction.y })
-        let letter = getLetterByCoords({ content, x: letterCoords.x, y: letterCoords.y });
-        while (letter === TARGET[currentLetterIndex]) {
-          if (currentLetterIndex === TARGET.length - 1) {
-            resultCount += 1;
-            break;
-          }
-
-          currentLetterIndex += 1;
-          letter = getLetterByCoords({ content, x: letterCoords.x, y: letterCoords.y });
+      let letterCoords = getNextLetterCoords({ x: neighbor.x, y: neighbor.y }, { x: neighbor.direction.x, y: neighbor.direction.y })
+      let letter = getLetterByCoords({ content, x: letterCoords.x, y: letterCoords.y });
+      while (letter === TARGET[currentLetterIndex]) {
+        if (currentLetterIndex === TARGET.length - 1) {
+          resultCount += 1;
+          break;
         }
+
+        currentLetterIndex += 1;
+        const nextLetterCoords = getNextLetterCoords({ x: letterCoords.x, y: letterCoords.y }, { x: neighbor.direction.x, y: neighbor.direction.y })
+        letter = getLetterByCoords({ content, x: nextLetterCoords.x, y: nextLetterCoords.y });
       }
     }
   }
