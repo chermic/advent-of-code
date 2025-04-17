@@ -10,136 +10,228 @@
 // const lines = file.split('\n');
 // const content = lines.map((line) => line.split(''))
 
-// const TARGET = 'XMAS'
-// const LAST_TARGET_INDEX = TARGET.length - 1
+const TARGET = 'XMAS'
+const LAST_TARGET_INDEX = TARGET.length - 1
 
-// const MAX_X = content[0].length - 1
-// const MAX_Y = content.length - 1
+let MAX_X = 0
+let MAX_Y = 0
+// let MAX_X = content[0].length - 1
+// let MAX_Y = content.length - 1
 
-// const getCoordNeighbors = (x, y) => {
-//   const isXGreaterThanZero = x > 0
-//   const isYGreaterThanZero = y > 0
-//   const isXLessThanMax = x < MAX_X
-//   const isYLessThanMax = y < MAX_Y
+const getCoordNeighbors = (x, y) => {
+  const isXGreaterThanZero = x > 0
+  const isYGreaterThanZero = y > 0
+  const isXLessThanMax = x < MAX_X
+  const isYLessThanMax = y < MAX_Y
 
-//   return [
-//     isXGreaterThanZero && isYGreaterThanZero ? [x - 1, y - 1] : null,
-//     isYGreaterThanZero ? [x, y - 1] : null,
-//     isXLessThanMax && isYGreaterThanZero ? [x + 1, y - 1] : null,
-//     isXGreaterThanZero ? [x - 1, y] : null,
-//     isXLessThanMax ? [x + 1, y] : null,
-//     isXGreaterThanZero && isYLessThanMax ? [x - 1, y + 1] : null,
-//     isYLessThanMax ? [x, y + 1] : null,
-//     isXLessThanMax && isYLessThanMax ? [x + 1, y + 1] : null
-//   ].filter(Boolean)
-// }
-
-
-
-// function* findNextLetter(x, y, currentLetterIndex, count) {
-//   const letterNeighborsCoords = getCoordNeighbors(x, y)
-//   const nextLetterIndex = currentLetterIndex + 1;
-
-//   for (const [neighborX, neighborY] of letterNeighborsCoords) {
-//     if (content[neighborY][neighborX] === TARGET[nextLetterIndex]) {
-//       if (nextLetterIndex === LAST_TARGET_INDEX) {
-//         return count + 1
-//       }
-
-//       return findNextLetter(neighborX, neighborY, currentLetterIndex + 1, count)
-//     }
-//   }
-
-//   return 0
-// }
-
-// function* loop() {
-//   let resultCount = 0
-
-//   for (let y = 0; y < content.length; y++) {
-//     for (let x = 0; x < content[y].length; x++) {
-//       const letter = content[y][x]
-
-//       if (letter !== TARGET[0]) {
-//         continue
-//       }
-
-
-//       resultCount += findNextLetter(x, y, 0, 0)
-//     }
-//   }
-// }
-
-function* innerGenerator() {
-  for (let i = 0; i < 140; i++) {
-    yield i;
-  }
+  return [
+    isXGreaterThanZero && isYGreaterThanZero ? [x - 1, y - 1] : null,
+    isYGreaterThanZero ? [x, y - 1] : null,
+    isXLessThanMax && isYGreaterThanZero ? [x + 1, y - 1] : null,
+    isXGreaterThanZero ? [x - 1, y] : null,
+    isXLessThanMax ? [x + 1, y] : null,
+    isXGreaterThanZero && isYLessThanMax ? [x - 1, y + 1] : null,
+    isYLessThanMax ? [x, y + 1] : null,
+    isXLessThanMax && isYLessThanMax ? [x + 1, y + 1] : null
+  ].filter(Boolean)
 }
 
-function* generator() {
-  for (let i = 0; i < 140; i++) {
-    // const innerGen = innerGenerator();
 
-    for (const innerElement of innerGenerator()) {
-      yield [innerElement, i];
+
+let resultCount = 0
+const increaseCount = () => {
+  const count = document.getElementById('count');
+
+  resultCount += 1
+  count.innerText = resultCount;
+}
+
+function* findNextLetter(content, x, y, currentLetterIndex, depthLevel = 1) {
+
+  const letterNeighborsCoords = getCoordNeighbors(x, y, MAX_X, MAX_Y)
+
+  for (const [neighborX, neighborY] of letterNeighborsCoords) {
+    yield { x: neighborX, y: neighborY, depthLevel };
+
+    const nextLetterIndex = currentLetterIndex + 1;
+
+
+    if (content[neighborY][neighborX] !== TARGET[nextLetterIndex]) {
+      continue;
+    }
+
+    if (nextLetterIndex === LAST_TARGET_INDEX) {
+      increaseCount()
+    } else {
+      const generator = findNextLetter(content, neighborX, neighborY, nextLetterIndex, depthLevel + 1)
+
+      for (const value of generator) {
+        yield value;
+      }
     }
   }
 }
 
+function* mainLoop(content) {
+  for (let y = 0; y < content.length; y++) {
+    for (let x = 0; x < content[y].length; x++) {
+      const letter = content[y][x]
+
+      if (letter !== TARGET[0]) {
+        continue
+      }
+
+      yield { x, y, depthLevel: 0 }
+
+
+      for (const value of findNextLetter(content, x, y, 0)) {
+        const { x, y, depthLevel } = value;
+
+        yield { x, y, depthLevel };
+      }
+    }
+  }
+}
+
+const drawField = (field, content) => {
+  for (let rowNum = 0; rowNum < content.length; rowNum++) {
+    const row = content[rowNum]
+
+    const rowElement = document.createElement('div');
+    rowElement.classList.add('row');
+
+    for (let letterNum = 0; letterNum < row.length; letterNum++) {
+      const letter = content[rowNum][letterNum];
+
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+
+      const textNode = document.createTextNode(letter)
+      cell.append(textNode);
+
+      rowElement.append(cell)
+    }
+
+    field.append(rowElement);
+  }
+}
+
+const getFieldElementByCoords = ({ field, x, y }) => {
+  return field.children[y].children[x];
+}
+
 async function main() {
-  document.getElementById('button').addEventListener('click', async () => {
+  document.getElementById('load-file').addEventListener('click', async () => {
     const [fileHandle] = await window.showOpenFilePicker()
     const file = await fileHandle.getFile();
     const text = await file.text();
 
     const lines = text.split('\n');
+    MAX_Y = lines.length - 1;
+
     const content = lines.map((line) => line.split(''))
+    MAX_X = content[0].length - 1;
 
     const field = document.getElementById('field');
+    drawField(field, content)
 
-    for (let rowNum = 0; rowNum < content.length; rowNum++) {
-      const row = content[rowNum]
+    let prevValue = null
+    let timer = null;
 
-      const rowElement = document.createElement('div');
-      rowElement.classList.add('row');
+    let timeoutTime = 500;
+    const queueNextTick = () => {
+      timer = setTimeout(() => {
+        getNextValue()
+        queueNextTick()
+      }, timeoutTime)
+    }
 
-      for (let letterNum = 0; letterNum < row.length; letterNum++) {
-        const letter = content[rowNum][letterNum];
+    const clearTimer = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null
+      }
+    }
 
-        const cell = document.createElement('div');
-        cell.classList.add('cell');
-
-        const textNode = document.createTextNode(letter)
-        cell.append(textNode);
-
-        rowElement.append(cell)
+    const loopGenerator = mainLoop(content);
+    const ancestors = [];
+    const getNextValue = () => {
+      if (prevValue) {
+        const { x, y } = prevValue;
+        getFieldElementByCoords({ field, x, y }).classList.remove('active')
       }
 
-      field.append(rowElement);
+      const { value, done } = loopGenerator.next()
+      if (done || !value) {
+        return;
+      }
+
+      const { x, y, depthLevel } = value;
+
+      /**
+       * Если глубина нового элемента больше, чем предыдущего - значит необходимо добавить предыдущий элемент в список предков
+       */
+      if (prevValue && depthLevel > prevValue.depthLevel) {
+        ancestors.push(prevValue)
+        getFieldElementByCoords({ field, x: prevValue.x, y: prevValue.y }).classList.add('parent')
+
+        /**
+         * Если глубина нового элемента меньше глубины предыдущего - необходимо удалить все элементы с глубиной,
+         * меньшей чем у текущего элемента из списка предков и соответствующие стили с них
+         */
+      } else if (prevValue && depthLevel < prevValue.depthLevel) {
+        while (ancestors.at(-1) && ancestors.at(-1).depthLevel + 1 > depthLevel) {
+          const lastAncestor = ancestors.pop();
+          getFieldElementByCoords({ field, x: lastAncestor.x, y: lastAncestor.y }).classList.remove('parent');
+        }
+      }
+
+      getFieldElementByCoords({ field, x, y }).classList.add('active')
+
+      prevValue = value;
     }
 
 
     const startButton = document.getElementById('start');
-
-    const gen = generator();
-    let prevValue = null
-    let timer = null;
-    const getNextValue = () => {
-
-    }
-
     startButton.addEventListener('click', () => {
-      let generatorValue = gen.next()
-      const value = generatorValue.value
+      clearTimer();
+      getNextValue()
+      queueNextTick()
+    })
 
-      if (!generatorValue.done && generatorValue.value) {
-        const [x, y] = value;
-        field.children[y].children[x].style.color = 'red'
+    const nextStepButton = document.getElementById('nextStep');
+    nextStepButton.addEventListener('click', () => {
+      clearTimer();
+      getNextValue();
+    })
 
-        if (prevValue) {
-          const [x, y] = prevValue;
-          field.children[y].children[x].style.color = 'unset'
-        }
+
+    const increaseSpeedButton = document.getElementById('increase-speed');
+    increaseSpeedButton.addEventListener('click', () => {
+      let wasTimerStarted = Boolean(timer);
+      clearTimer();
+      timeoutTime = Math.max(0, timeoutTime - 100);
+
+      if (wasTimerStarted) {
+        queueNextTick()
+      }
+    })
+
+    const decreaseSpeedButton = document.getElementById('decrease-speed');
+    decreaseSpeedButton.addEventListener('click', () => {
+      let wasTimerStarted = Boolean(timer);
+      clearTimer();
+      timeoutTime = Math.min(1000, timeoutTime + 100);
+
+      if (wasTimerStarted) {
+        queueNextTick()
+      }
+    })
+
+    const computeInstantlyButton = document.getElementById('compute-instantly');
+    computeInstantlyButton.addEventListener('click', async () => {
+      for (const _ of mainLoop(content)) {
+
       }
     })
   })

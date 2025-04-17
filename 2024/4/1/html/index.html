@@ -8,8 +8,18 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <button id="button">Open file picker</button>
-    <button id="start">Start</button>
+    <div id="header" class="header">
+      <button id="load-file">Open file picker</button>
+      <button id="compute-instantly">Compute instantly</button>
+      <button id="start">Start</button>
+      <button id="nextStep">Next step</button>
+      <button id="increase-speed">+</button>
+      <button id="decrease-speed">-</button>
+      <div id="stat" class="stat">
+        <span>count: <span id="count">0</span></span>
+        <!-- <span>count: <span id="count"></span></span> -->
+      </div>
+    </div>
     <div id="field"></div>
   </body>
 </html>
